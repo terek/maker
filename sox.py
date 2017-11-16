@@ -26,6 +26,15 @@ def MonoToLeftRight(mono, left, right):
       'Stereo file from mono with shift %s (%.2f, %.2f)' % (
           mono, left, right))
 
+def StereoAdjustVolume(stereo, left, right):
+  command = 'sox %s OUTPUT.wav remix 1v%.2f 2v%.2f' % (stereo, left, right)
+  return generator.RegisterCommand(
+      generator.CreateBaseName(command) + '.wav',
+      [stereo],
+      command,
+      'Stereo file volume adjust %s (%.2f, %.2f)' % (
+          stereo, left, right))
+
 def Filter(audio, filter):
   command = 'sox %s OUTPUT.wav %s' % (audio, filter)
   return generator.RegisterCommand(
