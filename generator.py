@@ -1,3 +1,5 @@
+import os
+
 # These cannot contain / because that would confuse the temp rename substitution.
 # TODO: better renaming.
 PREFIX = 'gen'
@@ -142,3 +144,15 @@ def GenerateCleanupScript(working_directory, filenames):
   script.extend(
       ['mv "%s" saved' % f for f in files if f.find('/') == -1])
   print '\n'.join(script)
+
+def RegisterFileWithMTime(filename):
+  # Having mtime in a shell comment will make output file depend on it.
+  ext = FileExtension(filename)
+  mtime = os.path.getmtime(filename)
+  command = 'ln -s %s OUTPUT.%s # %d' % (filename, ext, mtime)
+  return RegisterCommand(
+      CreateBaseName(command) + '.' + ext,
+      [filename],
+      command,
+      'Linking file with mtime sensitivity %s (%d)' % (
+          filename, mtime))
