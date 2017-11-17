@@ -1,11 +1,13 @@
 import generator
 
+FFMPEG="ffmpeg"
+
 def VideoToImages(video, fps, start, duration):
   assert fps > 0
   num_frames = int(round(fps * duration))
   command = (
-      'ffmpeg -i %s -r %.2f -ss %.2f -t %.2f -f image2 OUTPUT-%%05d.png') % (
-          video, fps, start, duration)
+      '%s -i %s -r %.2f -ss %.2f -t %.2f -f image2 OUTPUT-%%05d.png') % (
+          FFMPEG, video, fps, start, duration)
   basename = generator.CreateBaseName(command)
   filenames = ['%s-%05d.png' % (basename, x) for x in range(1, num_frames + 1)]
   target = generator.RegisterCommand(
@@ -21,9 +23,9 @@ def VideoFromImages(fps, filenames):
   links = generator.GenerateLinks(filenames)
   assert len(links) > 0
   command = (
-      'ffmpeg -f image2 -r %.2f -i %s -r %.2f -c:v libx264 -pix_fmt yuv420p ' +
+      '%s -f image2 -r %.2f -i %s -r %.2f -c:v libx264 -pix_fmt yuv420p ' +
       '-f mp4 OUTPUT.mp4') % (
-          fps, generator.GroupBaseName(links[0]) + '-%05d.png', fps)
+          FFMPEG, fps, generator.GroupBaseName(links[0]) + '-%05d.png', fps)
   return generator.RegisterCommand(
       generator.CreateBaseName(command) + '.mp4',
       links,
@@ -32,8 +34,8 @@ def VideoFromImages(fps, filenames):
 
 def VideoCutSegment(video, start, duration):
   command = (
-      'ffmpeg -i %s  -ss %s -t %s -an -c:v libx264 OUTPUT.mp4') % (
-          video, start, duration)
+      '%s -i %s  -ss %s -t %s -an -c:v libx264 OUTPUT.mp4') % (
+          FFMPEG, video, start, duration)
   return generator.RegisterCommand(
       generator.CreateBaseName(command) + '.mp4',
       [video],
@@ -42,8 +44,8 @@ def VideoCutSegment(video, start, duration):
 
 def MergeVideos(absolute_path, videos):
   command = (
-      'ffmpeg -f concat -i <(echo "%s") -strict -2 OUTPUT.mp4' % (
-          ''.join(["file '%s/%s'\n" % (absolute_path, x) for x in videos])))
+      '%s -f concat -i <(echo "%s") -strict -2 OUTPUT.mp4' % (
+          FFMPEG, ''.join(["file '%s/%s'\n" % (absolute_path, x) for x in videos])))
   return generator.RegisterCommand(
       generator.CreateBaseName(command) + '.mp4',
       videos,
@@ -52,9 +54,9 @@ def MergeVideos(absolute_path, videos):
 
 def MergeVideoAndAudio(video, audio):
   command = (
-      'ffmpeg -i %s  -i %s -map 0:v:0 -map 1:a:0 -shortest -c:v copy ' +
+      '%s -i %s  -i %s -map 0:v:0 -map 1:a:0 -shortest -c:v copy ' +
       '-c:a aac -strict experimental OUTPUT.mp4') % (
-          video, audio)
+          FFMPEG, video, audio)
   return generator.RegisterCommand(
       generator.CreateBaseName(command) + '.mp4',
       [video, audio],
